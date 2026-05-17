@@ -196,7 +196,8 @@ def main():
     parser.add_argument("--session", type=str, help="Rollout history for a specific session ID")
     parser.add_argument("--limit", type=int, default=20, help="Limit when listing sessions")
     
-    parser.add_argument("--jsonl", action="store_true", help="Output in OpenAI-compatible JSONL format")
+    parser.add_argument("--jsonl", action="store_true", default=True, help="Output in OpenAI-compatible JSONL format (default)")
+    parser.add_argument("--text", action="store_true", help="Output in human-readable text format")
     
     args = parser.parse_args()
     
@@ -212,10 +213,10 @@ def main():
         if args.list:
             list_sessions(db, args.limit)
         elif args.session:
-            if args.jsonl:
-                rollout_session(db, args.session, format="jsonl")
-            else:
+            if args.text:
                 rollout_session_text(db, args.session)
+            else:
+                rollout_session(db, args.session, format="jsonl")
         else:
             parser.print_help()
     finally:

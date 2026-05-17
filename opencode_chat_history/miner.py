@@ -196,8 +196,9 @@ def main():
     parser.add_argument("--session", type=str, help="Rollout history for a specific session ID")
     parser.add_argument("--limit", type=int, default=20, help="Limit when listing sessions")
     
-    parser.add_argument("--jsonl", action="store_true", default=True, help="Output in OpenAI-compatible JSONL format (default)")
-    parser.add_argument("--text", action="store_true", help="Output in human-readable text format")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--jsonl", action="store_true", help="Output in OpenAI-compatible JSONL format (default)")
+    group.add_argument("--text", action="store_true", help="Output in human-readable text format")
     
     args = parser.parse_args()
     
@@ -216,6 +217,7 @@ def main():
             if args.text:
                 rollout_session_text(db, args.session)
             else:
+                # Default is JSONL
                 rollout_session(db, args.session, format="jsonl")
         else:
             parser.print_help()

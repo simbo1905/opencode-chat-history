@@ -1,26 +1,60 @@
-# Opencode Chat History Skill
-
-This skill allows an agent to explore and mine the local `opencode` session history.
-
-## Environment
-
-The `opencode` TUI stores its state in a SQLite database:
+---
+name: opencode-chat-history
+description: Mine and explore local opencode session history from the SQLite database. Use this skill to list recent sessions, roll out full conversation history in Chat-JSONL or text format, and filter output with jq.
+---
+ 
+# Opencode Chat History
+ 
+The `opencode` TUI stores all session state in:
 `~/.local/share/opencode/opencode.db`
-
-## Capabilities
-
-- **List Sessions**: Find recent conversation IDs and titles.
-- **Rollout Session**: Retrieve the full text and tool interactions of a specific conversation.
-- **Analyze Usage**: Extract metrics like token counts and costs from the `session` table.
-
-## Commands
-
-### List Recent Sessions
+ 
+The miner script is at:
+`/Users/consensussolutions/opencode-chat-history/opencode_chat_history/miner.py`
+ 
+It runs zero-install via `uv run` — no venv or pip needed.
+ 
+## List recent sessions
+ 
 ```bash
-uv run /Users/Shared/opencode-chat-history/opencode_chat_history/miner.py --list
+uv run /Users/consensussolutions/opencode-chat-history/opencode_chat_history/miner.py --list
 ```
-
-### Rollout Session History
+ 
+Add `--limit N` to see more than the default 20.
+ 
+## Roll out a session as Chat-JSONL (default)
+ 
+OpenAI-compatible, one message per line:
+ 
 ```bash
-uv run /Users/Shared/opencode-chat-history/opencode_chat_history/miner.py --session <id>
+uv run /Users/consensussolutions/opencode-chat-history/opencode_chat_history/miner.py --session <id>
 ```
+ 
+## Roll out a session as human-readable text
+ 
+```bash
+uv run /Users/consensussolutions/opencode-chat-history/opencode_chat_history/miner.py --session <id> --text
+```
+ 
+## Save a session to a file
+ 
+```bash
+uv run /Users/consensussolutions/opencode-chat-history/opencode_chat_history/miner.py --session <id> > session.jsonl
+```
+ 
+## Filter with jq
+ 
+Extract only user messages:
+```bash
+uv run /Users/consensussolutions/opencode-chat-history/opencode_chat_history/miner.py --session <id> | jq 'select(.role=="user") | .content'
+```
+ 
+Count bash tool calls:
+```bash
+uv run /Users/consensussolutions/opencode-chat-history/opencode_chat_history/miner.py --session <id> | jq 'select(.role=="assistant") | .tool_calls[]?.function.name' | grep -c '"bash"'
+```
+ 
+Wrap into an API-ready messages array:
+```bash
+uv run /Users/consensussolutions/opencode-chat-history/opencode_chat_history/miner.py --session <id> | jq -s '{messages: .}'
+```
+ 
